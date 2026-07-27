@@ -17,6 +17,7 @@ export type GenerationMode = 'all' | 'title' | 'description' | 'hashtags';
 
 export interface GenerateRequest {
   topic: string;
+  language?: string;
   mode?: GenerationMode;
   currentTitle?: string;
   currentDescription?: string;

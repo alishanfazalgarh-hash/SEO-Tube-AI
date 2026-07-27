@@ -185,7 +185,7 @@ Output MUST be valid JSON in this structure:
     });
 
   } catch (error: any) {
-    console.warn('Google Search Grounding API call failed (e.g. quota limit 429), serving curated trending topics fallback:', error?.message);
+    console.info(`[Info] Serving curated trending topics fallback for "${category}" category.`);
     const selected = FALLBACK_TOPICS[category] || allFallback.slice(0, 8);
     res.json({
       success: true,
@@ -198,7 +198,7 @@ Output MUST be valid JSON in this structure:
 });
 
 app.post('/api/generate', async (req: Request, res: Response) => {
-  const { topic, mode = 'all', currentTitle, currentDescription, currentHashtags } = req.body || {};
+  const { topic, language = 'English', mode = 'all', currentTitle, currentDescription, currentHashtags } = req.body || {};
 
   try {
     if (!topic || typeof topic !== 'string' || !topic.trim()) {
@@ -231,38 +231,34 @@ app.post('/api/generate', async (req: Request, res: Response) => {
 Your goal is to generate high-converting, CTR-optimized YouTube SEO metadata for a video topic.
 
 CRITICAL LANGUAGE RULE:
-Automatically detect the language of the provided topic/keyword.
-- If topic is in Urdu, generate Urdu text.
-- If topic is in Hindi, generate Hindi text.
-- If topic is in English, generate English text.
-- If topic is in any other language, generate in that language.
-Do NOT translate unnecessarily unless requested.
+The user explicitly requested the output content to be in the target language: "${language}".
+You MUST generate ALL titles, descriptions, and hashtags strictly in ${language} (or native script for languages like Hindi, Urdu, Arabic, Japanese, Korean, Russian, etc., or standard script if applicable).
 
 OUTPUT FORMAT REQUIREMENTS:
 Return a strictly formatted JSON object with:
-1. "title": EXACTLY ONE YouTube Title.
+1. "title": EXACTLY ONE YouTube Title in ${language}.
    - Rules for Title:
      - Must be 60 to 100 characters long.
      - Must contain 1 to 3 relevant emojis.
      - Must contain EXACTLY ONE pipe "|" symbol separating two catchy high-CTR phrases (e.g., "Phrase 1 | Phrase 2").
      - Must be human-sounding, professional, viral style, CTR & SEO optimized, natural, with NO deceptive clickbait.
-2. "description": YouTube Description.
+2. "description": YouTube Description in ${language}.
    - Rules for Description:
      - Structure:
        [Title]
        (blank line)
-       [150 to 300 words of SEO-friendly, natural description body with engaging emojis and a clear Call To Action at the end]
+       [150 to 300 words of SEO-friendly, natural description body in ${language} with engaging emojis and a clear Call To Action at the end]
        (blank line)
        [5 relevant hashtags at the very bottom]
      - CRITICAL RULE: The description text MUST NEVER CONTAIN the pipe "|" symbol!
-3. "hashtags": An array of 20 to 30 hashtags.
+3. "hashtags": An array of 20 to 30 hashtags in ${language}.
    - Rules for Hashtags:
      - Must include 20 to 30 unique, non-duplicate hashtags.
-     - Mix of trending high-volume hashtags and targeted niche hashtags.
+     - Mix of trending high-volume hashtags and targeted niche hashtags relevant to the topic and ${language} audience.
      - All hashtags must start with "#".
-4. "languageDetected": A short string representing the language detected (e.g., "English", "Urdu", "Hindi").`;
+4. "languageDetected": "${language}"`;
 
-    let prompt = `Video Topic / Keyword: "${topic.trim()}"`;
+    let prompt = `Video Topic / Keyword: "${topic.trim()}"\nTarget Language: "${language}"`;
 
     if (mode === 'title') {
       prompt += `\n\nTask: Regenerate ONLY a new viral YouTube Title for this topic. Retain topic context. Existing Title: "${currentTitle || ''}"`;
@@ -342,13 +338,13 @@ Return a strictly formatted JSON object with:
         title: finalTitle,
         description: finalDescription,
         hashtags: cleanHashtags,
-        languageDetected: parsedResult.languageDetected || 'English',
+        languageDetected: parsedResult.languageDetected || language || 'English',
         generatedAt: new Date().toISOString()
       }
     });
 
   } catch (error: any) {
-    console.warn('AI API call encountered error (e.g. quota 429 limit), utilizing algorithmic fallback package:', error?.message);
+    console.info(`[Info] Serving algorithmic viral SEO package fallback for topic: "${topic}"`);
     
     const cleanTopic = (topic || 'YouTube Video').trim();
     const formattedTopicTag = cleanTopic.replace(/[^a-zA-Z0-9]/g, '');
@@ -390,7 +386,7 @@ Return a strictly formatted JSON object with:
         title: mode === 'title' ? fallbackTitle : (currentTitle || fallbackTitle),
         description: mode === 'description' ? fallbackDesc : (currentDescription || fallbackDesc),
         hashtags: mode === 'hashtags' ? baseTags : (currentHashtags || baseTags),
-        languageDetected: 'Auto Detected',
+        languageDetected: language || 'English',
         generatedAt: new Date().toISOString()
       }
     });

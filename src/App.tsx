@@ -7,7 +7,6 @@ import { SkeletonCards } from './components/SkeletonCard';
 import { Toast, ToastMessage } from './components/Toast';
 import { AdContainer } from './components/AdContainer';
 import { HistorySection } from './components/HistorySection';
-import { TrendingTopicsWidget } from './components/TrendingTopicsWidget';
 import { BoomModal } from './components/BoomModal';
 import { triggerBoomAnimation } from './utils/confettiBoom';
 import { SeoResult, GenerationMode, HistoryItem } from './types';
@@ -27,6 +26,7 @@ export default function App() {
   });
 
   const [topic, setTopic] = useState<string>('');
+  const [language, setLanguage] = useState<string>('English');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRegeneratingCard, setIsRegeneratingCard] = useState<GenerationMode | null>(null);
   const [seoResult, setSeoResult] = useState<SeoResult | null>(null);
@@ -110,6 +110,7 @@ export default function App() {
         },
         body: JSON.stringify({
           topic: targetTopic,
+          language,
           mode,
           currentTitle: seoResult?.title,
           currentDescription: seoResult?.description,
@@ -198,11 +199,6 @@ export default function App() {
     showToast('Cleared all generation history.', 'info');
   };
 
-  const handleSelectTrendingTopic = (selectedTopic: string) => {
-    setTopic(selectedTopic);
-    handleGenerate('all', selectedTopic);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[#0f172a] text-white transition-colors duration-300 relative overflow-x-hidden selection:bg-red-500 selection:text-white">
       
@@ -270,15 +266,11 @@ export default function App() {
           <InputSection
             topic={topic}
             setTopic={setTopic}
+            language={language}
+            setLanguage={setLanguage}
             onGenerate={() => handleGenerate('all')}
             isLoading={isLoading}
             onClear={handleClear}
-          />
-
-          {/* Real-Time Trending Topics Widget (Google Search Grounded) */}
-          <TrendingTopicsWidget
-            onSelectTopic={handleSelectTrendingTopic}
-            onShowToast={showToast}
           />
 
           {/* Loading Skeleton */}

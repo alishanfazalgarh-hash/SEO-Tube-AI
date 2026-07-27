@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SeoResult, GenerationMode } from '../types';
-import { Copy, Check, RefreshCw, Sparkles, Hash, FileText, Type, Trash2, Layers, Globe } from 'lucide-react';
+import { Copy, Check, RefreshCw, Sparkles, Hash, FileText, Type, Trash2, Layers, Globe, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { AdContainer } from './AdContainer';
 
 interface OutputCardsProps {
@@ -49,6 +49,57 @@ export const OutputCards: React.FC<OutputCardsProps> = ({
   const wordCount = seoResult.description
     ? seoResult.description.trim().split(/\s+/).length
     : 0;
+
+  const titleLength = seoResult.title ? seoResult.title.length : 0;
+  const isTitleLengthIdeal = titleLength >= 50 && titleLength <= 100;
+  
+  const isDescLengthIdeal = wordCount >= 80;
+
+  const hashtagCount = seoResult.hashtags ? seoResult.hashtags.length : 0;
+  const isHashtagCountIdeal = hashtagCount >= 5 && hashtagCount <= 30;
+
+  const hasEmojiInTitle = /\p{Extended_Pictographic}/u.test(seoResult.title || '');
+
+  const checklistItems = [
+    {
+      id: 'title',
+      label: 'Title Length Check',
+      value: `${titleLength} Characters`,
+      isPassed: isTitleLengthIdeal,
+      idealRange: 'Ideal: 50 - 100 characters',
+      passedMessage: 'Optimal title length for mobile & desktop CTR.',
+      failMessage: titleLength < 50 ? 'Title is short. Consider adding keywords (50-100 chars).' : 'Title exceeds 100 chars. YouTube may truncate it.',
+    },
+    {
+      id: 'description',
+      label: 'Description Depth Check',
+      value: `${wordCount} Words`,
+      isPassed: isDescLengthIdeal,
+      idealRange: 'Ideal: 80+ words',
+      passedMessage: 'Rich description providing algorithm context.',
+      failMessage: 'Add more content detail for better YouTube search rankings.',
+    },
+    {
+      id: 'hashtags',
+      label: 'Hashtags Strategy Check',
+      value: `${hashtagCount} Hashtags`,
+      isPassed: isHashtagCountIdeal,
+      idealRange: 'Ideal: 5 - 30 hashtags',
+      passedMessage: 'Great hashtag mix for discovery & search feeds.',
+      failMessage: 'Include between 5 and 30 targeted hashtags.',
+    },
+    {
+      id: 'emoji',
+      label: 'Visual CTR Emoji Check',
+      value: hasEmojiInTitle ? 'Emoji Included' : 'No Emoji Found',
+      isPassed: hasEmojiInTitle,
+      idealRange: 'Ideal: 1 - 3 Emojis',
+      passedMessage: 'Title includes eye-catching emojis to boost clicks.',
+      failMessage: 'Add 1-2 visual emojis to increase viewer click rate.',
+    },
+  ];
+
+  const passedCount = checklistItems.filter((item) => item.isPassed).length;
 
   return (
     <div id="results-section" className="w-full max-w-4xl mx-auto space-y-8 animate-fade-in scroll-mt-20">
@@ -263,6 +314,76 @@ export const OutputCards: React.FC<OutputCardsProps> = ({
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* SEO CHECKLIST SECTION */}
+      <div className="relative group rounded-3xl bg-white/5 border border-white/10 shadow-2xl backdrop-blur-md p-6 sm:p-8 space-y-5 overflow-hidden">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2.5 text-emerald-400 font-extrabold text-sm sm:text-base uppercase tracking-wider">
+            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>SEO Optimization Checklist</span>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              {passedCount} of {checklistItems.length} Checks Passed
+            </span>
+          </div>
+        </div>
+
+        {/* Checklist Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {checklistItems.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-2xl border transition-all duration-300 ${
+                item.isPassed
+                  ? 'bg-emerald-500/10 border-emerald-500/30 shadow-lg shadow-emerald-500/5'
+                  : 'bg-amber-500/10 border-amber-500/30 shadow-lg shadow-amber-500/5'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`p-1.5 rounded-full shrink-0 mt-0.5 ${
+                    item.isPassed
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}
+                >
+                  {item.isPassed ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-amber-400" />
+                  )}
+                </div>
+
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-sm text-white truncate">{item.label}</span>
+                    <span
+                      className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
+                        item.isPassed
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}
+                    >
+                      {item.value}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-300 font-medium leading-snug">
+                    {item.isPassed ? item.passedMessage : item.failMessage}
+                  </p>
+
+                  <div className="text-[10px] text-gray-400 font-mono pt-0.5">{item.idealRange}</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
