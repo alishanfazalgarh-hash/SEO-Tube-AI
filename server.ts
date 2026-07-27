@@ -297,7 +297,23 @@ Return a strictly formatted JSON object with:
       throw new Error('Received empty response from AI model');
     }
 
-    let parsedResult = JSON.parse(textOutput);
+    let cleanText = (textOutput || '').trim();
+    if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    }
+
+    let parsedResult: any = {};
+    try {
+      parsedResult = JSON.parse(cleanText);
+    } catch (parseErr) {
+      console.warn('[Warning] Failed to parse raw text directly, attempting regex extraction');
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResult = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('Could not parse valid JSON from AI output');
+      }
+    }
 
     // Post-processing sanity checks
     let finalTitle = parsedResult.title || '';

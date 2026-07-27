@@ -118,7 +118,14 @@ export default function App() {
         }),
       });
 
-      const json = await response.json();
+      const responseText = await response.text();
+      let json: any;
+      try {
+        json = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Non-JSON response from server:', responseText);
+        throw new Error('Server returned an invalid or empty response. Please try again.');
+      }
 
       if (!response.ok || !json.success) {
         throw new Error(json.error || 'Failed to generate SEO package. Please try again.');
