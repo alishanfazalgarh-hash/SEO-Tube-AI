@@ -1,0 +1,6 @@
+{
+  "name": "SEO Tube AI",
+  "description": "Create Viral YouTube Titles, Descriptions & Hashtags in Seconds with AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
