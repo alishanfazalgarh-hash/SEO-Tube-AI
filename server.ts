@@ -145,7 +145,7 @@ Output MUST be valid JSON in this structure:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -197,7 +197,7 @@ Output MUST be valid JSON in this structure:
   }
 });
 
-app.post('/api/generate', async (req: Request, res: Response) => {
+const generateSeoHandler = async (req: Request, res: Response) => {
   const { topic, language = 'English', mode = 'all', currentTitle, currentDescription, currentHashtags } = req.body || {};
 
   try {
@@ -211,11 +211,7 @@ app.post('/api/generate', async (req: Request, res: Response) => {
 
     const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      res.status(500).json({
-        success: false,
-        error: 'API key is missing on backend server. Please configure AI_API_KEY in environment.',
-      });
-      return;
+      throw new Error('API key is missing on backend server');
     }
 
     const ai = new GoogleGenAI({
@@ -269,7 +265,7 @@ Return a strictly formatted JSON object with:
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         systemInstruction,
@@ -348,6 +344,8 @@ Return a strictly formatted JSON object with:
       finalDescription = currentDescription;
     }
 
+    if (res.headersSent) return;
+
     res.json({
       success: true,
       data: {
@@ -360,8 +358,9 @@ Return a strictly formatted JSON object with:
     });
 
   } catch (error: any) {
-    console.info(`[Info] Serving algorithmic viral SEO package fallback for topic: "${topic}"`);
-    
+    console.info(`[Info] Serving algorithmic viral SEO package fallback for topic: "${topic}" (${error?.message})`);
+    if (res.headersSent) return;
+
     const cleanTopic = (topic || 'YouTube Video').trim();
     const formattedTopicTag = cleanTopic.replace(/[^a-zA-Z0-9]/g, '');
 
@@ -407,6 +406,12 @@ Return a strictly formatted JSON object with:
       }
     });
   }
+};
+
+app.post('/api/generate', generateSeoHandler);
+app.post('/api/generate-seo', generateSeoHandler);
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 async function startServer() {
